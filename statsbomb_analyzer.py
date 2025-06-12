@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List, Optional
 from statsbomb_fetcher import StatsBombFetcher
-from performance_calculator import PerformanceCalculator
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.patches import Arc
@@ -16,7 +15,6 @@ class StatsBombAnalyzer:
     
     def __init__(self):
         self.fetcher = StatsBombFetcher()
-        self.performance_calculator = PerformanceCalculator()
         
     def analyze_player_performance(self, player_name: str, 
                                  competition_name: str = None,
