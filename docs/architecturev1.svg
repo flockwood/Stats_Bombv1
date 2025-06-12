@@ -1,0 +1,215 @@
+<svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="700" y="30" text-anchor="middle" font-size="26" font-weight="bold" fill="#2c3e50">
+    StatsBomb Soccer Analyzer - System Architecture
+  </text>
+  
+  <!-- StatsBomb Data Source -->
+  <g id="data-source">
+    <rect x="50" y="80" width="300" height="120" rx="10" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+    <text x="200" y="110" text-anchor="middle" font-size="18" font-weight="bold" fill="white">StatsBomb Open Data</text>
+    <text x="200" y="135" text-anchor="middle" font-size="12" fill="white">GitHub Repository</text>
+    <text x="200" y="155" text-anchor="middle" font-size="11" fill="white">• Competitions • Matches</text>
+    <text x="200" y="175" text-anchor="middle" font-size="11" fill="white">• Events • Lineups</text>
+  </g>
+  
+  <!-- Data Examples -->
+  <g id="data-examples">
+    <rect x="50" y="220" width="300" height="180" rx="5" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+    <text x="200" y="245" text-anchor="middle" font-size="14" font-weight="bold" fill="#2c3e50">Available Data</text>
+    
+    <text x="60" y="270" font-size="11" fill="#34495e">• FIFA World Cup (2018, 2022)</text>
+    <text x="60" y="290" font-size="11" fill="#34495e">• Premier League (2003/2004)</text>
+    <text x="60" y="310" font-size="11" fill="#34495e">• La Liga (2004/05 - 2019/20)</text>
+    <text x="60" y="330" font-size="11" fill="#34495e">• Champions League</text>
+    <text x="60" y="350" font-size="11" fill="#34495e">• Serie A, Bundesliga, Ligue 1</text>
+    <text x="60" y="370" font-size="11" fill="#34495e">• Women's competitions</text>
+  </g>
+  
+  <!-- StatsBomb Fetcher Module -->
+  <g id="fetcher-module">
+    <rect x="450" y="80" width="280" height="200" rx="10" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+    <text x="590" y="110" text-anchor="middle" font-size="16" font-weight="bold" fill="white">statsbomb_fetcher.py</text>
+    <line x1="470" y1="125" x2="710" y2="125" stroke="white" stroke-width="1"/>
+    
+    <text x="590" y="150" text-anchor="middle" font-size="13" font-weight="bold" fill="white">Core Functions:</text>
+    <text x="470" y="175" font-size="11" fill="white">• get_competitions() - List all available</text>
+    <text x="470" y="195" font-size="11" fill="white">• get_matches() - Get match list</text>
+    <text x="470" y="215" font-size="11" fill="white">• get_match_events() - All events data</text>
+    <text x="470" y="235" font-size="11" fill="white">• get_lineups() - Team lineups</text>
+    <text x="470" y="255" font-size="11" fill="white">• get_player_season_stats() - Aggregate</text>
+  </g>
+  
+  <!-- Data Processing -->
+  <g id="data-processing">
+    <rect x="450" y="300" width="280" height="100" rx="5" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    <text x="590" y="325" text-anchor="middle" font-size="12" font-weight="bold" fill="#2c3e50">Data Processing</text>
+    
+    <text x="460" y="350" font-size="10" fill="#34495e">• Parse JSON responses</text>
+    <text x="460" y="370" font-size="10" fill="#34495e">• Calculate per 90 metrics</text>
+    <text x="460" y="390" font-size="10" fill="#34495e">• Aggregate player statistics</text>
+  </g>
+  
+  <!-- StatsBomb Analyzer Module -->
+  <g id="analyzer-module">
+    <rect x="830" y="80" width="280" height="320" rx="10" fill="#27ae60" stroke="#229954" stroke-width="2"/>
+    <text x="970" y="110" text-anchor="middle" font-size="16" font-weight="bold" fill="white">statsbomb_analyzer.py</text>
+    <line x1="850" y1="125" x2="1090" y2="125" stroke="white" stroke-width="1"/>
+    
+    <text x="970" y="150" text-anchor="middle" font-size="13" font-weight="bold" fill="white">Analysis Functions:</text>
+    
+    <text x="850" y="175" font-size="11" fill="white">Player Analysis:</text>
+    <text x="860" y="195" font-size="10" fill="white">• analyze_player_performance()</text>
+    <text x="860" y="212" font-size="10" fill="white">• compare_players()</text>
+    <text x="860" y="229" font-size="10" fill="white">• find_similar_players()</text>
+    
+    <text x="850" y="255" font-size="11" fill="white">Team Analysis:</text>
+    <text x="860" y="275" font-size="10" fill="white">• analyze_shooting_efficiency()</text>
+    <text x="860" y="292" font-size="10" fill="white">• analyze_creative_players()</text>
+    <text x="860" y="309" font-size="10" fill="white">• analyze_defensive_players()</text>
+    
+    <text x="850" y="335" font-size="11" fill="white">Visualizations:</text>
+    <text x="860" y="355" font-size="10" fill="white">• visualize_player_radar()</text>
+    <text x="860" y="372" font-size="10" fill="white">• visualize_pitch_heatmap()</text>
+    <text x="860" y="389" font-size="10" fill="white">• visualize_passing_network()</text>
+  </g>
+  
+  <!-- Main Application -->
+  <g id="main-app">
+    <rect x="450" y="450" width="660" height="140" rx="10" fill="#34495e" stroke="#2c3e50" stroke-width="3"/>
+    <text x="780" y="485" text-anchor="middle" font-size="18" font-weight="bold" fill="white">statsbomb_main.py</text>
+    <text x="780" y="510" text-anchor="middle" font-size="13" fill="white">CLI Application - StatsBombTransferAnalyzer</text>
+    <line x1="470" y1="525" x2="1090" y2="525" stroke="white" stroke-width="1"/>
+    
+    <text x="480" y="550" font-size="11" fill="white">Commands: --list, --player, --top, --similar, --compare</text>
+    <text x="480" y="570" font-size="11" fill="white">Options: --competition, --season, --position, --top-n</text>
+  </g>
+  
+  <!-- User Interface -->
+  <g id="user-interface">
+    <rect x="450" y="640" width="660" height="80" rx="10" fill="#2ecc71" stroke="#27ae60" stroke-width="2"/>
+    <text x="780" y="670" text-anchor="middle" font-size="16" font-weight="bold" fill="white">Command Line Interface</text>
+    <text x="780" y="695" text-anchor="middle" font-size="12" fill="white">Terminal Commands → Analysis Results → Visualizations</text>
+  </g>
+  
+  <!-- Data Flow Arrows -->
+  <g id="data-flow" opacity="0.7">
+    <!-- StatsBomb to Fetcher -->
+    <path d="M 350 140 L 450 140" stroke="#3498db" stroke-width="3" marker-end="url(#arrowhead-blue)"/>
+    <text x="380" y="135" font-size="10" fill="#3498db">HTTP/JSON</text>
+    
+    <!-- Fetcher to Analyzer -->
+    <path d="M 730 180 L 830 180" stroke="#27ae60" stroke-width="3" marker-end="url(#arrowhead-green)"/>
+    <text x="760" y="175" font-size="10" fill="#27ae60">DataFrames</text>
+    
+    <!-- Fetcher to Main -->
+    <path d="M 590 280 L 590 450" stroke="#34495e" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+    
+    <!-- Analyzer to Main -->
+    <path d="M 970 400 L 970 450" stroke="#34495e" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+    
+    <!-- Main to UI -->
+    <path d="M 780 590 L 780 640" stroke="#2ecc71" stroke-width="3" marker-end="url(#arrowhead-green2)"/>
+  </g>
+  
+  <!-- Arrow definitions -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34495e"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#3498db"/>
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#27ae60"/>
+    </marker>
+    <marker id="arrowhead-green2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2ecc71"/>
+    </marker>
+  </defs>
+  
+  <!-- Example Commands -->
+  <g id="example-commands">
+    <rect x="1150" y="80" width="230" height="320" rx="5" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+    <text x="1265" y="105" text-anchor="middle" font-size="13" font-weight="bold" fill="#2c3e50">Example Commands</text>
+    
+    <text x="1160" y="130" font-size="10" fill="#34495e" font-weight="bold">List competitions:</text>
+    <text x="1160" y="145" font-size="9" fill="#7f8c8d" font-family="monospace">python statsbomb_main.py --list</text>
+    
+    <text x="1160" y="175" font-size="10" fill="#34495e" font-weight="bold">Analyze player:</text>
+    <text x="1160" y="190" font-size="9" fill="#7f8c8d" font-family="monospace">python statsbomb_main.py \</text>
+    <text x="1170" y="205" font-size="9" fill="#7f8c8d" font-family="monospace">--competition "La Liga" \</text>
+    <text x="1170" y="220" font-size="9" fill="#7f8c8d" font-family="monospace">--season "2014/2015" \</text>
+    <text x="1170" y="235" font-size="9" fill="#7f8c8d" font-family="monospace">--player "Messi"</text>
+    
+    <text x="1160" y="265" font-size="10" fill="#34495e" font-weight="bold">Find top scorers:</text>
+    <text x="1160" y="280" font-size="9" fill="#7f8c8d" font-family="monospace">python statsbomb_main.py \</text>
+    <text x="1170" y="295" font-size="9" fill="#7f8c8d" font-family="monospace">--competition "World Cup" \</text>
+    <text x="1170" y="310" font-size="9" fill="#7f8c8d" font-family="monospace">--season "2022" --top goals</text>
+    
+    <text x="1160" y="340" font-size="10" fill="#34495e" font-weight="bold">Compare players:</text>
+    <text x="1160" y="355" font-size="9" fill="#7f8c8d" font-family="monospace">python statsbomb_main.py \</text>
+    <text x="1170" y="370" font-size="9" fill="#7f8c8d" font-family="monospace">--compare "Messi" "Ronaldo" \</text>
+    <text x="1170" y="385" font-size="9" fill="#7f8c8d" font-family="monospace">"Neymar"</text>
+  </g>
+  
+  <!-- Key Features -->
+  <g id="key-features">
+    <rect x="1150" y="420" width="230" height="170" rx="5" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+    <text x="1265" y="445" text-anchor="middle" font-size="13" font-weight="bold" fill="#2c3e50">Key Features</text>
+    
+    <text x="1160" y="470" font-size="10" fill="#27ae60">✓ No API key required</text>
+    <text x="1160" y="490" font-size="10" fill="#27ae60">✓ Rich event data</text>
+    <text x="1160" y="510" font-size="10" fill="#27ae60">✓ xG and xA metrics</text>
+    <text x="1160" y="530" font-size="10" fill="#27ae60">✓ Pitch visualizations</text>
+    <text x="1160" y="550" font-size="10" fill="#27ae60">✓ Historical analysis</text>
+    <text x="1160" y="570" font-size="10" fill="#27ae60">✓ Export capabilities</text>
+  </g>
+  
+  <!-- Process Flow -->
+  <g id="process-flow">
+    <rect x="50" y="750" width="1100" height="120" rx="5" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+    <text x="600" y="775" text-anchor="middle" font-size="14" font-weight="bold" fill="#2c3e50">How It Works</text>
+    
+    <!-- Steps -->
+    <g id="step1">
+      <circle cx="150" cy="820" r="25" fill="#e74c3c"/>
+      <text x="150" y="825" text-anchor="middle" font-size="14" font-weight="bold" fill="white">1</text>
+      <text x="150" y="855" text-anchor="middle" font-size="11" fill="#2c3e50">User Request</text>
+    </g>
+    
+    <g id="step2">
+      <circle cx="350" cy="820" r="25" fill="#3498db"/>
+      <text x="350" y="825" text-anchor="middle" font-size="14" font-weight="bold" fill="white">2</text>
+      <text x="350" y="855" text-anchor="middle" font-size="11" fill="#2c3e50">Fetch Data</text>
+    </g>
+    
+    <g id="step3">
+      <circle cx="550" cy="820" r="25" fill="#f39c12"/>
+      <text x="550" y="825" text-anchor="middle" font-size="14" font-weight="bold" fill="white">3</text>
+      <text x="550" y="855" text-anchor="middle" font-size="11" fill="#2c3e50">Process Events</text>
+    </g>
+    
+    <g id="step4">
+      <circle cx="750" cy="820" r="25" fill="#27ae60"/>
+      <text x="750" y="825" text-anchor="middle" font-size="14" font-weight="bold" fill="white">4</text>
+      <text x="750" y="855" text-anchor="middle" font-size="11" fill="#2c3e50">Analyze Data</text>
+    </g>
+    
+    <g id="step5">
+      <circle cx="950" cy="820" r="25" fill="#9b59b6"/>
+      <text x="950" y="825" text-anchor="middle" font-size="14" font-weight="bold" fill="white">5</text>
+      <text x="950" y="855" text-anchor="middle" font-size="11" fill="#2c3e50">Generate Output</text>
+    </g>
+    
+    <!-- Flow arrows -->
+    <path d="M 175 820 L 325 820" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrowhead-gray)"/>
+    <path d="M 375 820 L 525 820" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrowhead-gray)"/>
+    <path d="M 575 820 L 725 820" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrowhead-gray)"/>
+    <path d="M 775 820 L 925 820" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrowhead-gray)"/>
+    
+    <marker id="arrowhead-gray" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7f8c8d"/>
+    </marker>
+  </g>
+</svg>
