@@ -1,91 +1,208 @@
 # statsbomb_fetcher.py
-"""Module for fetching and processing StatsBomb open data"""
+"""Threaded StatsBomb data fetcher for fast performance"""
 
 import requests
 import pandas as pd
 import json
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
+import concurrent.futures
+from threading import Lock
+import time
+import os
+import pickle
 
 
 class StatsBombFetcher:
-    """Fetches and processes data from StatsBomb's open data repository"""
+    """Fetches and processes data from StatsBomb's open data repository with threading"""
     
-    def __init__(self):
+    def __init__(self, max_workers: int = 10, cache_dir: str = "statsbomb_cache"):
         self.base_url = "https://raw.githubusercontent.com/statsbomb/open-data/master/data"
-        self._cache = {}
+        self._memory_cache = {}
+        self._cache_lock = Lock()
+        self.max_workers = max_workers
+        self.cache_dir = cache_dir
         
+        # Create cache directory if it doesn't exist
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+    
+    def _get_cache_path(self, cache_key: str) -> str:
+        """Get file path for cache"""
+        return os.path.join(self.cache_dir, f"{cache_key}.pkl")
+    
+    def _load_from_disk_cache(self, cache_key: str):
+        """Load data from disk cache if available"""
+        cache_path = self._get_cache_path(cache_key)
+        if os.path.exists(cache_path):
+            try:
+                with open(cache_path, 'rb') as f:
+                    return pickle.load(f)
+            except:
+                pass
+        return None
+    
+    def _save_to_disk_cache(self, cache_key: str, data):
+        """Save data to disk cache"""
+        cache_path = self._get_cache_path(cache_key)
+        try:
+            with open(cache_path, 'wb') as f:
+                pickle.dump(data, f)
+        except:
+            pass
+    
     def get_competitions(self) -> pd.DataFrame:
         """Get all available competitions"""
-        url = f"{self.base_url}/competitions.json"
+        cache_key = 'competitions'
         
-        if 'competitions' in self._cache:
-            return self._cache['competitions']
+        # Check memory cache
+        if cache_key in self._memory_cache:
+            return self._memory_cache[cache_key]
         
-        response = requests.get(url)
+        # Check disk cache
+        cached_data = self._load_from_disk_cache(cache_key)
+        if cached_data is not None:
+            self._memory_cache[cache_key] = cached_data
+            return cached_data
+        
+        # Fetch from API
+        response = requests.get(f"{self.base_url}/competitions.json")
         response.raise_for_status()
         
         competitions = pd.DataFrame(response.json())
-        self._cache['competitions'] = competitions
+        
+        # Cache the data
+        self._memory_cache[cache_key] = competitions
+        self._save_to_disk_cache(cache_key, competitions)
         
         return competitions
     
     def get_matches(self, competition_id: int, season_id: int) -> pd.DataFrame:
         """Get all matches for a specific competition and season"""
-        url = f"{self.base_url}/matches/{competition_id}/{season_id}.json"
-        
         cache_key = f"matches_{competition_id}_{season_id}"
-        if cache_key in self._cache:
-            return self._cache[cache_key]
         
+        # Check memory cache
+        if cache_key in self._memory_cache:
+            return self._memory_cache[cache_key]
+        
+        # Check disk cache
+        cached_data = self._load_from_disk_cache(cache_key)
+        if cached_data is not None:
+            self._memory_cache[cache_key] = cached_data
+            return cached_data
+        
+        # Fetch from API
+        url = f"{self.base_url}/matches/{competition_id}/{season_id}.json"
         response = requests.get(url)
         response.raise_for_status()
         
         matches = pd.DataFrame(response.json())
-        self._cache[cache_key] = matches
+        
+        # Cache the data
+        self._memory_cache[cache_key] = matches
+        self._save_to_disk_cache(cache_key, matches)
         
         return matches
     
     def get_match_events(self, match_id: int) -> pd.DataFrame:
         """Get all events from a specific match"""
-        url = f"{self.base_url}/events/{match_id}.json"
-        
         cache_key = f"events_{match_id}"
-        if cache_key in self._cache:
-            return self._cache[cache_key]
         
+        # Check memory cache
+        if cache_key in self._memory_cache:
+            return self._memory_cache[cache_key]
+        
+        # Check disk cache
+        cached_data = self._load_from_disk_cache(cache_key)
+        if cached_data is not None:
+            self._memory_cache[cache_key] = cached_data
+            return cached_data
+        
+        # Fetch from API
+        url = f"{self.base_url}/events/{match_id}.json"
         response = requests.get(url)
         response.raise_for_status()
         
         events = pd.DataFrame(response.json())
-        self._cache[cache_key] = events
+        
+        # Cache the data
+        self._memory_cache[cache_key] = events
+        self._save_to_disk_cache(cache_key, events)
         
         return events
     
+    def _fetch_single_match_events(self, match_id: int) -> Tuple[int, pd.DataFrame]:
+        """Fetch events for a single match (used by thread pool)"""
+        try:
+            events = self.get_match_events(match_id)
+            return match_id, events
+        except Exception as e:
+            print(f"\nError fetching match {match_id}: {e}")
+            return match_id, pd.DataFrame()
+    
+    def _fetch_single_match_data(self, match_info: dict) -> Optional[pd.DataFrame]:
+        """Fetch and process a single match's player stats"""
+        try:
+            match_id = match_info['match_id']
+            events = self.get_match_events(match_id)
+            
+            if events.empty:
+                return None
+            
+            # Get lineups
+            lineups = self.get_lineups(match_id)
+            
+            # Calculate player stats
+            player_stats = self._calculate_player_match_stats(events, lineups, match_info)
+            return player_stats
+            
+        except Exception as e:
+            print(f"\nError processing match {match_info['match_id']}: {e}")
+            return None
+    
     def get_lineups(self, match_id: int) -> Dict:
         """Get lineups for a specific match"""
+        cache_key = f"lineups_{match_id}"
+        
+        # Check memory cache
+        if cache_key in self._memory_cache:
+            return self._memory_cache[cache_key]
+        
+        # Check disk cache
+        cached_data = self._load_from_disk_cache(cache_key)
+        if cached_data is not None:
+            self._memory_cache[cache_key] = cached_data
+            return cached_data
+        
+        # Fetch from API
         url = f"{self.base_url}/lineups/{match_id}.json"
-        
-        response = requests.get(url)
-        response.raise_for_status()
-        
-        return response.json()
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            lineups = response.json()
+            
+            # Cache the data
+            self._memory_cache[cache_key] = lineups
+            self._save_to_disk_cache(cache_key, lineups)
+            
+            return lineups
+        except:
+            return []
     
-    def get_player_match_stats(self, match_id: int) -> pd.DataFrame:
+    def _calculate_player_match_stats(self, events: pd.DataFrame, lineups: List, match_info: dict) -> pd.DataFrame:
         """Calculate player statistics from match events"""
-        events = self.get_match_events(match_id)
-        lineups = self.get_lineups(match_id)
-        
         player_stats = {}
         
-        # Initialize stats for all players
+        # Initialize stats for all players in lineups
         for team in lineups:
-            for player in team['lineup']:
+            for player in team.get('lineup', []):
                 player_id = player['player_id']
                 player_stats[player_id] = {
                     'player_name': player['player_name'],
                     'team_name': team['team_name'],
                     'position': player['positions'][0]['position'] if player['positions'] else 'Unknown',
+                    'match_id': match_info['match_id'],
+                    'match_date': match_info['match_date'],
                     'minutes_played': 90,  # Default, will adjust for subs
                     'passes': 0,
                     'passes_completed': 0,
@@ -114,7 +231,33 @@ class StatsBombFetcher:
                 
             player_id = event['player']['id']
             if player_id not in player_stats:
-                continue
+                # Player not in starting lineup (might be a sub)
+                player_stats[player_id] = {
+                    'player_name': event['player']['name'],
+                    'team_name': event.get('team', {}).get('name', 'Unknown'),
+                    'position': 'Unknown',
+                    'match_id': match_info['match_id'],
+                    'match_date': match_info['match_date'],
+                    'minutes_played': 45,  # Assume sub
+                    'passes': 0,
+                    'passes_completed': 0,
+                    'shots': 0,
+                    'shots_on_target': 0,
+                    'goals': 0,
+                    'assists': 0,
+                    'key_passes': 0,
+                    'dribbles': 0,
+                    'dribbles_completed': 0,
+                    'tackles': 0,
+                    'interceptions': 0,
+                    'clearances': 0,
+                    'fouls': 0,
+                    'cards_yellow': 0,
+                    'cards_red': 0,
+                    'touches': 0,
+                    'xg': 0.0,
+                    'xa': 0.0
+                }
             
             event_type = event['type']['name']
             
@@ -171,24 +314,47 @@ class StatsBombFetcher:
         
         return pd.DataFrame.from_dict(player_stats, orient='index')
     
+    def get_player_match_stats(self, match_id: int) -> pd.DataFrame:
+        """Get player statistics for a specific match"""
+        events = self.get_match_events(match_id)
+        lineups = self.get_lineups(match_id)
+        
+        # Get match info (simplified)
+        match_info = {'match_id': match_id, 'match_date': ''}
+        
+        return self._calculate_player_match_stats(events, lineups, match_info)
+    
     def get_player_season_stats(self, competition_id: int, season_id: int, 
                                player_name: str = None) -> pd.DataFrame:
-        """Aggregate player statistics across a season"""
+        """Aggregate player statistics across a season using parallel processing"""
+        start_time = time.time()
+        
         matches = self.get_matches(competition_id, season_id)
+        total_matches = len(matches)
+        
+        print(f"Processing {total_matches} matches using {self.max_workers} threads...")
         
         all_player_stats = []
         
-        print(f"Processing {len(matches)} matches...")
-        for idx, match in matches.iterrows():
-            try:
-                match_stats = self.get_player_match_stats(match['match_id'])
-                match_stats['match_id'] = match['match_id']
-                match_stats['match_date'] = match['match_date']
-                match_stats['competition'] = match['competition']['competition_name']
-                all_player_stats.append(match_stats)
-            except Exception as e:
-                print(f"Error processing match {match['match_id']}: {e}")
-                continue
+        # Use ThreadPoolExecutor for parallel processing
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            # Submit all match processing tasks
+            future_to_match = {
+                executor.submit(self._fetch_single_match_data, match.to_dict()): idx 
+                for idx, match in matches.iterrows()
+            }
+            
+            # Process completed tasks with progress bar
+            completed = 0
+            for future in concurrent.futures.as_completed(future_to_match):
+                result = future.result()
+                if result is not None:
+                    all_player_stats.append(result)
+                
+                completed += 1
+                print(f"Progress: {completed}/{total_matches} matches processed", end='\r')
+        
+        print(f"\nCompleted in {time.time() - start_time:.2f} seconds")
         
         if not all_player_stats:
             return pd.DataFrame()
@@ -237,6 +403,10 @@ class StatsBombFetcher:
         aggregated['shot_accuracy'] = (aggregated['shots_on_target'] / aggregated['shots']) * 100
         aggregated['xg_per_90'] = (aggregated['xg'] / aggregated['minutes_played']) * 90
         aggregated['xa_per_90'] = (aggregated['xa'] / aggregated['minutes_played']) * 90
+        
+        # Handle division by zero
+        aggregated = aggregated.fillna(0)
+        aggregated = aggregated.replace([float('inf'), -float('inf')], 0)
         
         return aggregated.reset_index()
     
@@ -359,72 +529,3 @@ class StatsBombFetcher:
             'players': player_positions,
             'passes': pass_network
         }
-
-
-# Example usage functions
-def analyze_premier_league_players():
-    """Example: Analyze Premier League players from StatsBomb data"""
-    fetcher = StatsBombFetcher()
-    
-    # Get competitions
-    competitions = fetcher.get_competitions()
-    
-    # Find Premier League
-    pl = competitions[
-        (competitions['competition_name'] == 'Premier League') & 
-        (competitions['season_name'] == '2003/2004')  # StatsBomb has this season
-    ]
-    
-    if not pl.empty:
-        comp_id = pl.iloc[0]['competition_id']
-        season_id = pl.iloc[0]['season_id']
-        
-        # Get season stats
-        season_stats = fetcher.get_player_season_stats(comp_id, season_id)
-        
-        # Find top scorers
-        top_scorers = season_stats.nlargest(10, 'goals')[
-            ['player_name', 'team_name', 'goals', 'assists', 'xg', 'games_played']
-        ]
-        
-        print("Top Scorers - Premier League 2003/2004:")
-        print(top_scorers)
-        
-        return season_stats
-    
-    return None
-
-
-def analyze_world_cup_players():
-    """Example: Analyze World Cup players"""
-    fetcher = StatsBombFetcher()
-    
-    # Get competitions
-    competitions = fetcher.get_competitions()
-    
-    # Find World Cup
-    wc = competitions[
-        competitions['competition_name'] == 'FIFA World Cup'
-    ]
-    
-    print("Available World Cup seasons:")
-    print(wc[['competition_name', 'season_name']])
-    
-    # Get latest World Cup
-    if not wc.empty:
-        latest_wc = wc.iloc[-1]
-        comp_id = latest_wc['competition_id']
-        season_id = latest_wc['season_id']
-        
-        # Get player stats
-        player_stats = fetcher.get_player_season_stats(comp_id, season_id)
-        
-        # Top performers by xG
-        top_xg = player_stats.nlargest(10, 'xg')[
-            ['player_name', 'team_name', 'goals', 'xg', 'shots', 'games_played']
-        ]
-        
-        print(f"\nTop xG - {latest_wc['season_name']} World Cup:")
-        print(top_xg)
-        
-        return player_stats
