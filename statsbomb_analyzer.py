@@ -14,7 +14,7 @@ class StatsBombAnalyzer:
     """Analyzes player and team performance using StatsBomb event data"""
     
     def __init__(self):
-        self.fetcher = StatsBombFetcher()
+        self.fetcher = StatsBombFetcher(max_workers=10)  # Use threading
         
     def analyze_player_performance(self, player_name: str, 
                                  competition_name: str = None,
