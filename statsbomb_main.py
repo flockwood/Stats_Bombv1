@@ -12,7 +12,7 @@ class StatsBombTransferAnalyzer:
     """Transfer analyzer using only StatsBomb data"""
     
     def __init__(self):
-        self.fetcher = StatsBombFetcher()
+        self.fetcher = StatsBombFetcher(max_workers=10)  # Use threading
         self.analyzer = StatsBombAnalyzer()
         self.current_competition = None
         self.current_season = None
